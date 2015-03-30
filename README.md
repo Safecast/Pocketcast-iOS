@@ -49,3 +49,7 @@ Implementation of "nice to haves":
 - etc.
 
 Again, note that as an app running in the background, RAM is at a premium and must be used conservatively.
+
+### General
+- Code should be written in ANSI C when possible and abstracted from platform-specific bits, to enable easier porting to other platforms in the future.
+- Code should be ANSI C, Objective C, or SQL.

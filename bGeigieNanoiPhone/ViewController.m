@@ -56,16 +56,6 @@
     NSString* nmea = @"$BNXRDD,300,2012-12-16T17:58:24Z,31,9,115,A,4618.9996,N,00658.4623,E,587.6,A,77.2,1*1A";
     [self showPeripheralData:nmea];
     
-    // 2015-03-30 ND: I think there's a bug here, the "$" sigil should not be
-    //                getting sent twice per line.  I don't think there's
-    //                actually an EOL character, it's just detecting the start
-    //                of a new line.  I could be wrong.
-    //
-    //                I believe it's getting 1 byte at a time, and so for the
-    //                simulation being sent as a longer string, it makes sense
-    //                to keep the EOL for now but drop the leading "$" on each
-    //                line.
-    
     NSString* eol = @"$";
     [self showPeripheralData:eol];
 }//sendSimulatedbGeigieData

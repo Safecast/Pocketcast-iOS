@@ -48,6 +48,12 @@
     }//else
 }//pushStartbGeigieSimulateButton
 
+- (IBAction)pushClearButton:(id)sender
+{
+    [_messageOutputTextView setText:@""];
+
+}//pushClearButton
+
 - (void)sendSimulatedbGeigieData:(NSTimer *)timer
 {
     // send dummy data Like BLE Posted

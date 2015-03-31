@@ -42,11 +42,14 @@
 @property (weak, nonatomic) IBOutlet UISwitch *txSwitch;
 @property (weak, nonatomic) IBOutlet UIButton *startButton;
 @property (weak, nonatomic) IBOutlet UIButton *startbGeigieSimulateButton;
+@property (weak, nonatomic) IBOutlet UIButton *clearButton;
+
 @property (weak, nonatomic) IBOutlet UITextView *messageOutputTextView;
 
 @property (nonatomic, retain) CLLocationManager *locationManager;
 
 - (IBAction)pushStartButton:(id)sender;
 - (IBAction)pushStartbGeigieSimulateButton:(id)sender;
+- (IBAction)pushClearButton:(id)sender;
 
 @end

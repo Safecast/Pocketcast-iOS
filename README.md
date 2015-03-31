@@ -149,3 +149,11 @@ Code:
 Hardware:
 - It is possible the pGeigie *may* get a removable alpha/beta shield added, with some indication of this in the Bluetooth transmission.  If the shield is not in place, the data should either not be logged, or the log flagged as "do not upload".  This would be to support alpha/beta surface contamination scans which we don't want in the database.
 - The sensor being used by the pGeigie may change from an LND7313.  This may present future headaches if the gamma sensitivity is not identical.
+
+Platform:
+- iOS will kill background apps pretty readily.
+- The main reason is due to RAM.  Most iOS devices have <= 1 GB.  Using Safari on a complex webpage or webpages, viewing a map, or running a game will exhaust free RAM and create memory pressure.
+- Thus, the app running in the background indefinately is not guaranteed.
+- At some point unknown to the user, the app may be terminated.
+- There may need to be some way to indirectly indicate this to the user, such as a regular heartbeat to a watchdog server that would send an iOS notification.  Perhaps something can be done in the applicationWillTerminate delegate override method.
+- The best way to avoid this is to minimize memory use, and not do other things that raise iOS's ire, such as excessive wakeups. (eg, timers)

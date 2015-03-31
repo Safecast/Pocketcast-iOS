@@ -94,8 +94,20 @@ Status: 0%
 - Core Location should stop working / running in background if a device is not connected
 - Any timers or polling must also be stopped.  In general, the use of polling should be avoided.  Excessive wakeups will cause iOS to terminate background apps.
 - The app should self-terminate, or stop Core Location / Bluetooth if < 20% battery remaining
-- Core Location accuracy should be set to best possible when plugged into AC, but on battery the accuracy and minimum distance required for an update should be set more conservatively.  This will likely require testing.  Ideally, a precision of 10m - 20m is acceptable.
-- Optionally, the user may be allowed to set the geolocation precision higher or lower.  If set lower than ~20m precision, the log files should be flagged as not suitable for upload or submission to Safecast.
+- Core Location accuracy should be set to either kCLLocationAccuracyBest or kCLLocationAccuracyNearestTenMeters.  The power consumption and actual precision of these modes should be tested in more detail.
+
+Optional:
+- The user might be allowed to disable geolocation or tweak the precision further.  However, no setting lower in precision than kCLLocationAccuracyNearestTenMeters, or without coordinates entirely, should be accepted for data submission to Safecast.
+- For increasing geolocation precision at the expense of battery life, a timed mode may be useful, where it reverts to the default behavior when the timer expires.
+
+Reference:
+- kCLLocationAccuracyBestForNavigation: <10m precision, highest battery consumption
+- kCLLocationAccuracyBest: <10m precision, high battery consumption
+- kCLLocationAccuracyNearestTenMeters: Probably OK, may be best compromise between precision and battery life.
+- kCLLocationAccuracyHundredMeters: Not good enough for data submissions.
+- kCLLocationAccuracyKilometer: Useless.
+- kCLLocationAccuracyThreeKilometers: Useless.
+- distanceFilter: Would suggest kCLDistanceFilterNone for AC power, and a value of 5.0 (meters) on battery or so.
 
 If all required features above are supported, this may be considered an early release candidate pending approval from Sean/Pieter.
 

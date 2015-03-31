@@ -93,22 +93,24 @@ Status: 0%
 
 - Core Location should stop working / running in background if a device is not connected
 - Any timers or polling must also be stopped.  In general, the use of polling should be avoided.  Excessive wakeups will cause iOS to terminate background apps.
-- The app should self-terminate, or stop Core Location / Bluetooth if < 20% battery remaining
-- On battery, Core Location accuracy should be set to either kCLLocationAccuracyBest or kCLLocationAccuracyNearestTenMeters.  The power consumption and actual precision of these modes should be tested in more detail.
-- Test data should be collected and evaluated to determine if kCLLocationAccuracyNearestTenMeters is acceptable for Safecast data.
+- The app should self-terminate, or stop Core Location / Bluetooth and all processing if < 20% battery remaining
+- On AC, Core Location accuracy should be set to kCLLocationAccuracyBestForNavigation
+- On battery, Core Location accuracy should be set to either kCLLocationAccuracyBest or perhaps kCLLocationAccuracyNearestTenMeters.
+- Test data should be collected and evaluated to determine if kCLLocationAccuracyNearestTenMeters is acceptable for Safecast data.  It should be compared to the actual results from kCLLocationAccuracyBest.
+- If test data is unavailable, kCLLocationAccuracyBest should be used as a default on battery.  Extending the user's battery life is nice, but is secondary.  There is no point in gathering data at all if the spatial resolution is unacceptable.
 
 Optional:
 - The user might be allowed to disable geolocation or tweak the precision further.  However, no setting lower in precision than kCLLocationAccuracyNearestTenMeters, or without coordinates entirely, should be accepted for data submission to Safecast.
-- For increasing geolocation precision at the expense of battery life, a timed mode may be useful, where it reverts to the default behavior when the timer expires.  This gives the user the ability to perform a specific survey or extent of a survey with high spatial precision.
+- For increasing geolocation precision at the expense of battery life, a timed mode may be useful, where it reverts to the default behavior when the timer expires.  This gives the user the ability to perform a specific survey or part of a survey with higher spatial precision.
 
 Reference:
 - kCLLocationAccuracyBestForNavigation: <10m precision, highest battery consumption
 - kCLLocationAccuracyBest: <10m precision, high battery consumption
-- kCLLocationAccuracyNearestTenMeters: Probably OK (needs testing), may be best compromise between precision and battery life.
-- kCLLocationAccuracyHundredMeters: Not good enough for data submission.
-- kCLLocationAccuracyKilometer: Useless.
-- kCLLocationAccuracyThreeKilometers: Useless.
-- distanceFilter: Would suggest kCLDistanceFilterNone for AC power.  For battery, we should do some further testing.  My assumption is a value of 5.0 meters is appropriate for ~10m precision, but that is making assumptions about how things are implemented that may not be so.
+- kCLLocationAccuracyNearestTenMeters: Might be OK (needs testing), may be a compromise between precision and battery life.
+- kCLLocationAccuracyHundredMeters: Do not use.
+- kCLLocationAccuracyKilometer: Do not use.
+- kCLLocationAccuracyThreeKilometers: Do not use.
+- distanceFilter: Would suggest kCLDistanceFilterNone for AC power.  For battery, we should do some further testing.  Would assume 1.0m is a reasonable starting point.  Likely should not exceed 5.0m.
 
 If all required features above are supported, this may be considered an early release candidate pending approval from Sean/Pieter.
 

@@ -510,7 +510,6 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
 }//InitLocationManager
 
 
-
 // callback for GPS infos
 - (void)locationManager:(CLLocationManager *)manager
     didUpdateToLocation:(CLLocation *)newLocation

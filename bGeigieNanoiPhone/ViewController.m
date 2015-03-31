@@ -465,8 +465,7 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     snprintf(lon_min_str, 8, "%1.4f", lon_min); // not 100% sure if correct
     
     snprintf(lat_lon_nmea, 25, "%02d%s,%c,%03d%s,%c", lat_d, lat_min_str, NS, lon_d, lon_min_str, EW);
-}
-// deg2nmea
+}//deg2nmea
 
 - (void)InitLocationManager
 {
@@ -527,8 +526,7 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     
     self.lastGMT  = tempDate;
     self.lastNMEA = [NSString stringWithFormat:@"%s", nmea];
-}
-// locationManager
+}//locationManager
 
 // This delegate method is invoked when the location managed encounters an error condition.
 - (void)locationManager:(CLLocationManager *)manager

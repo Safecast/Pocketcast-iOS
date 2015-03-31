@@ -438,7 +438,7 @@
 -(void)peripheralDidInvalidateServices:(CBPeripheral *)peripheral
 {
     NSLog(@"Central node peripheralDidInvalidateServices");
-} // peripheralDidInvalidateServices
+}//peripheralDidInvalidateServices
 
 void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
 {

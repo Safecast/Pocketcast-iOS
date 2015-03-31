@@ -441,10 +441,14 @@
 
 // Header, DeviceID, Date, CPM, CPM5s, TC, RadIsValid, Lat, NS, Lon, EW, Alt, GpsIsValid, NumSats, HDOP, ChkSum
 
+
+
 -(void)peripheralDidInvalidateServices:(CBPeripheral *)peripheral
 {
     NSLog(@"Central node peripheralDidInvalidateServices");
 }//peripheralDidInvalidateServices
+
+
 
 void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
 {
@@ -472,6 +476,9 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     
     snprintf(lat_lon_nmea, 25, "%02d%s,%c,%03d%s,%c", lat_d, lat_min_str, NS, lon_d, lon_min_str, EW);
 }//deg2nmea
+
+
+
 
 - (void)InitLocationManager
 {
@@ -501,6 +508,7 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     
     NSLog(@"InitLocationManager: Done");
 }//InitLocationManager
+
 
 
 // callback for GPS infos

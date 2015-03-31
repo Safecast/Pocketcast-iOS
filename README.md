@@ -17,7 +17,10 @@ Additionally, simulated Bluetooth input has been added.
 ### Version 0.2
 
 Goal: Support "burst" transmissions from pGeigie.
+
 Requirements: pGeigie dev hardware
+
+Status: 0%
 
 - Core Location updates, altitudes, time, and precision information should be saved to an internal ring buffer structure (instead of just the last value.  Do not convert to string/NMEA immediately.)
 - Must support receiving pGeigie "burst" transmissions, of several measurements [how many?] at a fixed time interval [when?]
@@ -34,6 +37,8 @@ pGeigie Data Processing:
 
 Goal: Functional proof-of-concept.  Store information to log file and post to Safecast API.
 
+Status: 0%.  Marc has indicated he will be working on this component.
+
 - A bGeigie-format log file should be synthesized to contain the measurements for a session
 - The bGeigie serial number should come from the unit.  Exact details / format for this are unknown.
 - Uploads of log files (once closed) should be demonstrated, using a RESTful HTTP POST to the Safecast API
@@ -46,6 +51,8 @@ Caveats:
 ### Version 0.4
 
 Goals: Add UI.
+
+Status: 0%
 
 User interface elements to support all of the above should be added at this point.
 
@@ -78,6 +85,10 @@ Caveats:
 
 Goal: Polish and make suitable for use
 
+Requirements: Testing of Core Location precision to maximize battery use
+
+Status: 0%
+
 - Core Location should stop working / running in background if a device is not connected
 - Any timers or polling must also be stopped.  In general, the use of polling should be avoided.  Excessive wakeups will cause iOS to terminate background apps.
 - The app should self-terminate, or stop Core Location / Bluetooth if < 20% battery remaining
@@ -89,33 +100,42 @@ If all required features above are supported, this may be considered an early re
 
 ### Version 0.5+
 
-Goal: Implementation of "nice to haves":
+Goal: Implementation of "nice to haves".
 
-- Local CPM / dose rate display, with optionally:
-- - Selectable measurement time
-- - Zero/clear/reset
-- - Dose equivalent (dosimeter)
-- - Statistical error (may not be possible to calculate given the 5s chunks)
-- Apple Watch support
-- - (assuming anyone buys one)
-- Pebble support
-- - (see above)
-- Option to disable logging, or flag a log as "do not upload".
-- - For users to measure things we don't want in the database.
-- - Alpha/beta sources, test sources, etc.
-- Graphing
-- - Unload/release these when app moves to background.
-- Mapping
-- - Mapping may be a bad idea for an app running in the background; it uses a lot of RAM.
-- - If mapping is used, map views must be released when the app moves to the background.
-- - Historically, releasing a map view (either MKMapView or Google Maps) did not recover all memory, as the map frameworks have memory leaks.  Verify they are not leaking memory before use.
-- - Another option for mapping it to send data to the "main" Safecast app for iOS, which does not run in the background.  This requires work on both ends.
-- Sound Output
-- - Synthesis of click sounds on device for the current CPM (I have code to do this)
-- - Alarm for radiation level threshold or for radiological anomalies outside of a statistical threshold
-- etc.
+Requirements: Apple Watch hardware if development of Apple Watch interface is desired.
 
-The Safecast app for iOS already has some code for many of these things which may be of some use.
+Status: 0%
+
+Note: The Safecast app for iOS already has some code for many of these things which may be of some use.
+
+Local CPM / dose rate display, with optionally:
+- Selectable measurement time
+- Zero/clear/reset
+- Dose equivalent (dosimeter)
+- Statistical error (may not be possible to calculate given the 5s chunks)
+
+Apple Watch support
+- (assuming anyone buys one)
+
+Option to disable logging, or flag a log as "do not upload".
+- For users to measure things we don't want in the database.
+- Alpha/beta sources, test sources, etc.
+
+Graphing
+- Unload/release these when app moves to background.
+
+Mapping
+- Mapping may be a bad idea for an app running in the background; it uses a lot of RAM.
+- If mapping is used, map views must be released when the app moves to the background.
+- Historically, releasing a map view (either MKMapView or Google Maps) did not recover all memory, as the map frameworks have memory leaks.  Verify they are not leaking memory before use.
+- Another option for mapping it to send data to the "main" Safecast app for iOS, which does not run in the background.  This requires work on both ends.
+
+Sound Output
+- Synthesis of click sounds on device for the current CPM (I have code to do this)
+- Alarm for radiation level threshold or for radiological anomalies outside of a statistical threshold
+
+... etc.
+
 
 
 ### General

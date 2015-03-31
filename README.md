@@ -47,15 +47,26 @@ Caveats:
 
 Goals: Add UI.
 
-User interface elements to support all of the above should be added at this point, such as:
+User interface elements to support all of the above should be added at this point.
+
+Interactive:
 - Local log file management
-- Log file retrieval / download via some method(s) of file transfer
-- Manually or automatically submit closed/completed log files
-- Upload status history for a log file (eg, if the automated upload fails)
+- Configuration of automatated submission of log files.  Default to not use cellular data, with option to override.
+- View upload status history for a log file (eg, if the automated upload fails)
 - Safecast API key entry
-- Device connectivity with multiple device support (only autoconnect if the user has previously connected to a device. allow this to be disabled/"unpaired".)
+- Device connection dialog, with multiple device support (do not autoconnect to devices unless previously connected)
+- "Paired" device management, to disable autoconnection for specific devices that have been connected to previously
+
+Data Transmission:
+- Manual upload of log file to Safecast API.
+- Log file retrieval / download to PC or online storage service via some method(s) of file transfer
+
+UI Alerts/Messages:
 - UI feedback of API and Bluetooth errors
-- Optional alarm upon Bluetooth connectivity loss
+- UI feedback of file upload / data transfer status
+- UI feedback of internet connectivity ("reachability")
+- UI feedback of use of airplane mode (user error) on iPhone, if possible to detect this.
+
 
 Caveats:
 - This is likely the most time-intensive development stage.
@@ -80,17 +91,31 @@ If all required features above are supported, this may be considered an early re
 
 Goal: Implementation of "nice to haves":
 
-- Local CPM / dose rate display
-- Option to disable logging or flag a log as "do not upload".  This is especially relevant if the user is measuring alpha/beta radiation, which we don't want in the database.
+- Local CPM / dose rate display, with optionally:
+- - Selectable measurement time
+- - Zero/clear/reset
+- - Dose equivalent (dosimeter)
+- - Statistical error (may not be possible to calculate given the 5s chunks)
+- Apple Watch support
+- - (assuming anyone buys one)
+- Pebble support
+- - (see above)
+- Option to disable logging, or flag a log as "do not upload".
+- - For users to measure things we don't want in the database.
+- - Alpha/beta sources, test sources, etc.
 - Graphing
-- Mapping(?) (maybe a bad idea for an app running in the background, uses a lot of RAM)
-- Apple Watch support (assuming anyone buys one)
-- Synthesis of click sounds on device for the current CPM (I have code to do this)
-- Alarm for radiation level threshold or for radiological anomalies outside of a statistical threshold
+- - Unload/release these when app moves to background.
+- Mapping
+- - Mapping may be a bad idea for an app running in the background; it uses a lot of RAM.
+- - If mapping is used, map views must be released when the app moves to the background.
+- - Historically, releasing a map view (either MKMapView or Google Maps) did not recover all memory, as the map frameworks have memory leaks.  Verify they are not leaking memory before use.
+- - Another option for mapping it to send data to the "main" Safecast app for iOS, which does not run in the background.  This requires work on both ends.
+- Sound Output
+- - Synthesis of click sounds on device for the current CPM (I have code to do this)
+- - Alarm for radiation level threshold or for radiological anomalies outside of a statistical threshold
 - etc.
 
-Again, note that as an app running in the background, RAM is at a premium and must be used conservatively.  Processing and rendering of most everything should stop in the background to conserve battery.
-Everything that can be unloaded should be unloaded when moving into the background.
+The Safecast app for iOS already has some code for many of these things which may be of some use.
 
 
 ### General

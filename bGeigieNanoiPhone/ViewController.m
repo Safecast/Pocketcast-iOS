@@ -321,6 +321,12 @@
     }//else
 }//peripheral didUpdateNotificationStateForCharacteristic
 
+
+
+
+
+
+
 // This callback lets us know more data has arrived via notification on the characteristic
 //
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error

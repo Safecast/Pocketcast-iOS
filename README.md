@@ -99,7 +99,7 @@ Status: 0%
 
 Optional:
 - The user might be allowed to disable geolocation or tweak the precision further.  However, no setting lower in precision than kCLLocationAccuracyNearestTenMeters, or without coordinates entirely, should be accepted for data submission to Safecast.
-- For increasing geolocation precision at the expense of battery life, a timed mode may be useful, where it reverts to the default behavior when the timer expires.
+- For increasing geolocation precision at the expense of battery life, a timed mode may be useful, where it reverts to the default behavior when the timer expires.  This gives the user the ability to perform a specific survey or extent of a survey with high spatial precision.
 
 Reference:
 - kCLLocationAccuracyBestForNavigation: <10m precision, highest battery consumption

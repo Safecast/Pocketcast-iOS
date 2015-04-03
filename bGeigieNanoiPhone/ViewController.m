@@ -420,7 +420,10 @@
         return src;
     }//if
     
-    NSString* dest = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@",
+    NSString* hdop = ar[14];
+    hdop = [hdop stringByTrimmingCharactersInSet:[NSCharacterSet alphanumericCharacterSet]];
+    
+    NSString* prepare_dest = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@",
                       ar[0], ar[1],
                       self.lastGMT,
                       ar[3], ar[4], ar[5], ar[6],
@@ -428,7 +431,15 @@
                       [NSString stringWithFormat:@"%1.1f", gpsEle],
                       ar[12], // todo: fix gpsisvalid
                       ar[13], // todo: fix numsats
-                      ar[14]]; // todo: hdop, checksum
+                      hdop]; // todo: hdop, checksum
+    
+    // get checksum
+    const char prepare_checksum = [self getCheckSum:(char*)[prepare_dest UTF8String] length:(int)[prepare_dest length]];
+    // convert check sum to NSstring
+    const char* checksum[1] = {prepare_checksum};
+    NSString* str =   [NSString stringWithCString: checksum encoding:NSUTF8StringEncoding];
+    // make destination
+    NSString* dest = [NSString stringWithFormat:@"%@%@", prepare_dest, str];
     
     return dest;
 }//HackString
@@ -559,7 +570,17 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     }//else
 }//locationManager didFailWithError
 
-
+//gps_checksum
+-(char)getCheckSum:(char *)s length:(int )N
+{
+    int i = 0;
+    char chk = s[0];
+    
+    for (i=1 ; i < N ; i++)
+        chk ^= s[i];
+    
+    return chk;
+}//gps_checksum
 
 
 

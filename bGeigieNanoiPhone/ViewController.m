@@ -559,7 +559,6 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     self.lastNMEA = [NSString stringWithFormat:@"%s", nmea];
 }//locationManager
 
-
 // This delegate method is invoked when the location managed encounters an error condition.
 - (void)locationManager:(CLLocationManager *)manager
        didFailWithError:(NSError *)error
@@ -577,7 +576,7 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     }//else
 }//locationManager didFailWithError
 
-//gps_checksum
+//getCheckSum
 -(char)getCheckSum:(char *)s length:(int )N
 {
     int i = 0;
@@ -587,7 +586,7 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
         chk ^= s[i];
     
     return chk;
-}//gps_checksum
+}//getCheckSum
 
 
 

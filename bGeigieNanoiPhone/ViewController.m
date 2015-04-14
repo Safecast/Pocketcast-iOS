@@ -560,6 +560,7 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
 }//locationManager
 
 
+
 // This delegate method is invoked when the location managed encounters an error condition.
 - (void)locationManager:(CLLocationManager *)manager
        didFailWithError:(NSError *)error

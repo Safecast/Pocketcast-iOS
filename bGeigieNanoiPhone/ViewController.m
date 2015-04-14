@@ -13,6 +13,7 @@
 //                + Added last value caching + test string replace (untested)
 
 #import "ViewController.h"
+#import "class/DataLogger.h"
 
 @implementation ViewController
 
@@ -351,6 +352,11 @@
         _dataRecord = [self HackString:_dataRecord]; // 2015-03-30 ND: hack to substitute GPS + time from iPhone
         
         [self addStringToTextView: _dataRecord];
+        
+        // test code
+        DataLogger* logger = [[DataLogger alloc] init];
+        
+        // execute
         
         _dataRecord = @"";
     }//if

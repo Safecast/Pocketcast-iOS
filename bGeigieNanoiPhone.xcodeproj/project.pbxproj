@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		ABD9FDA61ADD4F5700FFD1D9 /* DataLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = ABD9FDA51ADD4F5700FFD1D9 /* DataLogger.m */; };
 		BE3816C1187BC3C60005C7DE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BE3816C0187BC3C60005C7DE /* Foundation.framework */; };
 		BE3816C3187BC3C60005C7DE /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BE3816C2187BC3C60005C7DE /* CoreGraphics.framework */; };
 		BE3816C5187BC3C60005C7DE /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BE3816C4187BC3C60005C7DE /* UIKit.framework */; };
@@ -22,6 +23,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		ABD9FDA41ADD4F5700FFD1D9 /* DataLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataLogger.h; sourceTree = "<group>"; };
+		ABD9FDA51ADD4F5700FFD1D9 /* DataLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DataLogger.m; sourceTree = "<group>"; };
 		BE3816BD187BC3C60005C7DE /* bGeigieNanoiPhone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = bGeigieNanoiPhone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE3816C0187BC3C60005C7DE /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		BE3816C2187BC3C60005C7DE /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -57,6 +60,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		ABD9FDA31ADD4F5700FFD1D9 /* class */ = {
+			isa = PBXGroup;
+			children = (
+				ABD9FDA41ADD4F5700FFD1D9 /* DataLogger.h */,
+				ABD9FDA51ADD4F5700FFD1D9 /* DataLogger.m */,
+			);
+			path = class;
+			sourceTree = "<group>";
+		};
 		BE3816B4187BC3C60005C7DE = {
 			isa = PBXGroup;
 			children = (
@@ -89,6 +101,7 @@
 		BE3816C6187BC3C60005C7DE /* bGeigieNanoiPhone */ = {
 			isa = PBXGroup;
 			children = (
+				ABD9FDA31ADD4F5700FFD1D9 /* class */,
 				BE3816CF187BC3C60005C7DE /* AppDelegate.h */,
 				BE3816D0187BC3C60005C7DE /* AppDelegate.m */,
 				BE3816D2187BC3C60005C7DE /* Main.storyboard */,
@@ -188,6 +201,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BE3816D7187BC3C60005C7DE /* ViewController.m in Sources */,
+				ABD9FDA61ADD4F5700FFD1D9 /* DataLogger.m in Sources */,
 				BE3816D1187BC3C60005C7DE /* AppDelegate.m in Sources */,
 				BE3816CD187BC3C60005C7DE /* main.m in Sources */,
 			);

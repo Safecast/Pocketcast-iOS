@@ -457,15 +457,7 @@
 // $BNRDD,300,2012-12-16T17:58:31Z,30,1,116,A,4618.9612,N,00658.4831, E, 443.7, A, 5, 1.28*6D
 //      0   1                    2  3 4   5 6         7 8          9 10     11 12 13  14
 
-
 // Header, DeviceID, Date, CPM, CPM5s, TC, RadIsValid, Lat, NS, Lon, EW, Alt, GpsIsValid, NumSats, HDOP, ChkSum
-
-// append by Mitsuo Okada
-// BLE real data(before hack) $BNRDD,1053,2015-04-07T16:51:12Z,58,9,76, A,0000.0000,N,00000.0000,E, 0.00,V,0,0*55\r\n
-// BLE real data (after hack) $BNRDD,1053,2015-04-07T17:01:27Z,39,3,456,A,3543.1840,N,13956.3433,E,29.5, A,6,*7E\r\n
-// LOG DATA      $BMRDD, 153,2015-04-06T20:40:35Z,36,6, 36,V,3545.2442,N,13941.6371,E,110.7,A,2.59,1*78
-// prepare_dest  $BNRDD,1053,2015-04-14T11:52:43Z,39,3,519,A,3539.3498,N,13941.7235,E, 51.1,V,   0, *,0"	0x17dd3f30
-//               Header,DeviceID,Date,CPM,CPM5s,TC,RadIsValid,Lat,NS,Lon,EW,Alt,GpsIsValid,NumSats,HDOP,ChkSum
 
 
 

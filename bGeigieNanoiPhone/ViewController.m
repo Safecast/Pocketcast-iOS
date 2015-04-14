@@ -59,7 +59,8 @@
     // send dummy data Like BLE Posted
     NSLog(@"sendSimulatedbGeigieData");
     
-    NSString* nmea = @"$BNXRDD,300,2012-12-16T17:58:24Z,31,9,115,A,4618.9996,N,00658.4623,E,587.6,A,77.2,1*1A";
+    NSString* nmea = @"BNRDD,1053,2015-04-14T12:34:02Z,34,3,531,A,3539.3513,N,13941.7015,E,41.00,A,13,76*43";
+    
     [self showPeripheralData:nmea];
     
     NSString* eol = @"$";
@@ -406,7 +407,10 @@
 //
 - (NSString*)HackString:(NSString*)src
 {
-    NSArray* ar = [src componentsSeparatedByString:@","];
+    NSString* base_str;
+    base_str = [src stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    
+    NSArray* ar = [base_str componentsSeparatedByString:@","];
     
     if (ar.count != 15)
     {
@@ -420,15 +424,29 @@
         return src;
     }//if
     
-    NSString* dest = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@",
-                      ar[0], ar[1],
+    NSString* header = [ar[0] substringFromIndex:1]; // cut '$'
+    NSString* hdop = ar[14];
+    NSRange range = [hdop rangeOfString:@"*"];
+    if (range.location == NSNotFound) {
+        NSLog(@"bad format.");
+    }
+    hdop = [hdop substringWithRange:NSMakeRange(0, range.location)];  // cut default checksum
+    
+    NSString* prepare_dest = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@",
+                      header, ar[1],
                       self.lastGMT,
                       ar[3], ar[4], ar[5], ar[6],
                       self.lastNMEA,
                       [NSString stringWithFormat:@"%1.1f", gpsEle],
                       ar[12], // todo: fix gpsisvalid
                       ar[13], // todo: fix numsats
-                      ar[14]]; // todo: hdop, checksum
+                      hdop];   // todo: hdop, checksum
+    
+    // get checksum
+    const char checksum = [self getCheckSum:(char*)[prepare_dest UTF8String] length:(int)[prepare_dest length]];
+
+    // make destination
+    NSString* dest = [NSString stringWithFormat:@"$%@*%x", prepare_dest, checksum];
     
     return dest;
 }//HackString
@@ -560,6 +578,17 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
 }//locationManager didFailWithError
 
 
+//getCheckSum
+-(char)getCheckSum:(char *)s length:(int )N
+{
+    int i = 0;
+    char chk = s[0];
+    
+    for (i=1 ; i < N ; i++)
+        chk ^= s[i];
+    
+    return chk;
+}//getCheckSum
 
 
 

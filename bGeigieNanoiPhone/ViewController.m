@@ -424,7 +424,7 @@
         return src;
     }//if
     
-    NSString* header = [ar[0] substringFromIndex:1]; // cut $
+    NSString* header = [ar[0] substringFromIndex:1]; // cut '$'
     NSString* hdop = ar[14];
     NSRange range = [hdop rangeOfString:@"*"];
     if (range.location == NSNotFound) {

@@ -430,7 +430,7 @@
     if (range.location == NSNotFound) {
         NSLog(@"bad format.");
     }
-    hdop = [hdop substringWithRange:NSMakeRange(0, range.location)];
+    hdop = [hdop substringWithRange:NSMakeRange(0, range.location)];  // cut default checksum
     
     NSString* prepare_dest = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@",
                       header, ar[1],

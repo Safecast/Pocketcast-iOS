@@ -560,7 +560,6 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
 }//locationManager
 
 
-
 // This delegate method is invoked when the location managed encounters an error condition.
 - (void)locationManager:(CLLocationManager *)manager
        didFailWithError:(NSError *)error
@@ -577,6 +576,7 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
         // This error indicates that the heading could not be determined, most likely because of strong magnetic interference.
     }//else
 }//locationManager didFailWithError
+
 
 //getCheckSum
 -(char)getCheckSum:(char *)s length:(int )N

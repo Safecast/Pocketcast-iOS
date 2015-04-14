@@ -542,7 +542,6 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     
     char nmea[25];
     
-    
     deg2nmea((char*)slat.UTF8String, (char*)slon.UTF8String, nmea);
     
     NSDate *currentDate = [NSDate date];

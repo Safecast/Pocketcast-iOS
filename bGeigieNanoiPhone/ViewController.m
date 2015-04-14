@@ -59,7 +59,8 @@
     // send dummy data Like BLE Posted
     NSLog(@"sendSimulatedbGeigieData");
     
-    NSString* nmea = @"$BNXRDD,300,2012-12-16T17:58:24Z,31,9,115,A,4618.9996,N,00658.4623,E,587.6,A,77.2,1*1A";
+    NSString* nmea = @"BNRDD,1053,2015-04-14T12:34:02Z,34,3,531,A,3539.3513,N,13941.7015,E,41.00,A,13,76*43";
+    
     [self showPeripheralData:nmea];
     
     NSString* eol = @"$";
@@ -406,7 +407,10 @@
 //
 - (NSString*)HackString:(NSString*)src
 {
-    NSArray* ar = [src componentsSeparatedByString:@","];
+    NSString* base_str;
+    base_str = [src stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    
+    NSArray* ar = [base_str componentsSeparatedByString:@","];
     
     if (ar.count != 15)
     {
@@ -420,26 +424,29 @@
         return src;
     }//if
     
+    NSString* header = [ar[0] substringFromIndex:1]; // cut $
     NSString* hdop = ar[14];
-    hdop = [hdop stringByTrimmingCharactersInSet:[NSCharacterSet alphanumericCharacterSet]];
+    NSRange range = [hdop rangeOfString:@"*"];
+    if (range.location == NSNotFound) {
+        NSLog(@"bad format.");
+    }
+    hdop = [hdop substringWithRange:NSMakeRange(0, range.location)];
     
     NSString* prepare_dest = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@",
-                      ar[0], ar[1],
+                      header, ar[1],
                       self.lastGMT,
                       ar[3], ar[4], ar[5], ar[6],
                       self.lastNMEA,
                       [NSString stringWithFormat:@"%1.1f", gpsEle],
                       ar[12], // todo: fix gpsisvalid
                       ar[13], // todo: fix numsats
-                      hdop]; // todo: hdop, checksum
+                      hdop];   // todo: hdop, checksum
     
     // get checksum
-    const char prepare_checksum = [self getCheckSum:(char*)[prepare_dest UTF8String] length:(int)[prepare_dest length]];
-    // convert check sum to NSstring
-    const char* checksum[1] = {prepare_checksum};
-    NSString* str =   [NSString stringWithCString: checksum encoding:NSUTF8StringEncoding];
+    const char checksum = [self getCheckSum:(char*)[prepare_dest UTF8String] length:(int)[prepare_dest length]];
+
     // make destination
-    NSString* dest = [NSString stringWithFormat:@"%@%@", prepare_dest, str];
+    NSString* dest = [NSString stringWithFormat:@"$%@*%x", prepare_dest, checksum];
     
     return dest;
 }//HackString
@@ -450,7 +457,15 @@
 // $BNRDD,300,2012-12-16T17:58:31Z,30,1,116,A,4618.9612,N,00658.4831, E, 443.7, A, 5, 1.28*6D
 //      0   1                    2  3 4   5 6         7 8          9 10     11 12 13  14
 
+
 // Header, DeviceID, Date, CPM, CPM5s, TC, RadIsValid, Lat, NS, Lon, EW, Alt, GpsIsValid, NumSats, HDOP, ChkSum
+
+// append by Mitsuo Okada
+// BLE real data(before hack) $BNRDD,1053,2015-04-07T16:51:12Z,58,9,76, A,0000.0000,N,00000.0000,E, 0.00,V,0,0*55\r\n
+// BLE real data (after hack) $BNRDD,1053,2015-04-07T17:01:27Z,39,3,456,A,3543.1840,N,13956.3433,E,29.5, A,6,*7E\r\n
+// LOG DATA      $BMRDD, 153,2015-04-06T20:40:35Z,36,6, 36,V,3545.2442,N,13941.6371,E,110.7,A,2.59,1*78
+// prepare_dest  $BNRDD,1053,2015-04-14T11:52:43Z,39,3,519,A,3539.3498,N,13941.7235,E, 51.1,V,   0, *,0"	0x17dd3f30
+//               Header,DeviceID,Date,CPM,CPM5s,TC,RadIsValid,Lat,NS,Lon,EW,Alt,GpsIsValid,NumSats,HDOP,ChkSum
 
 
 

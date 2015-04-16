@@ -5,13 +5,14 @@ Dev for pGeigie client on iOS, initially using a bGeigie BLE proxy
 
 Goal: Get bGeigie BLE input going with the location (NMEA + altitude) and timestamp coming from the iOS device.
 
-Status: 90%.
+Status: 95%.
 
 Need to fix the following bGeigie columns:
 - "number of satellites" (not obtainable on iOS.  crude approximation should be used.)
-- "HDOP" (different on iOS iirc.  again, approximate best as possible.)
+- "HDOP"
 - "gpsIsValid" (not sure what should determine this in iOS)
-- "checksum" (ref: https://github.com/Safecast/SafecastBGeigie/blob/master/GPS.cpp#L157)
+
+Note: there has been some internal discussion about simulating these columns other than HDOP.  An alternative implementation has been proposed, which would use a modernized log format converted to a bGeigie log by a gateway server.  At this point I assume an initial implementation using the bGeigie format directly on iOS is more likely, but will update as needed.
 
 Additionally, simulated Bluetooth input has been added.
 

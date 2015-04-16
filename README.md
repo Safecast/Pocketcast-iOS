@@ -10,6 +10,7 @@ Status: 100%.
 Caveats: The following bGeigie columns were simulated:
 - "number of satellites" (not obtainable on iOS.  "8" if CoreLocation returns a valid location, "0" otherwise.)
 - "gpsIsValid" (CoreLocation's determination via negated HDOP for invalid location is used here.)
+- "HDOP" (CoreLocation returns horizontal precision in meters.  Per the Wikipedia page, a factor of 6.0 is being used to convert meters to HDOP.  This is an approximation.  The actual HDOP is likely indeterminate on iOS from my understanding.)
 
 Note: there has been some internal discussion about simulating these columns other than HDOP.  An alternative implementation has been proposed, which would use a modernized log format converted to a bGeigie log by a gateway server.  At this point I assume an initial implementation using the bGeigie format directly on iOS is more likely, but will update as needed.
 

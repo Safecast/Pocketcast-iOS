@@ -6,6 +6,8 @@
 //  Copyright (c) 2014 Eyes, JAPAN. All rights reserved.
 //
 
+// 2015-04-16 ND: + Add location HDOP from CoreLocation
+//                + Init values for elevation, lat, lon, HDOP.
 // 2015-03-30 ND: + Integrate Mitsuo Okada's simulation code
 //                + Various nitpicky formatting
 // 2015-03-24 ND: + Added CLLocationManager to get location from iPhone
@@ -26,6 +28,10 @@
     _isStartSimulate = false;
     self.lastNMEA = NULL;
     self.lastGMT = NULL;
+    gpsEle  = -9000.0; // 2015-04-16 ND: init to (bad) initial values instead of random garbage
+    gpsHDOP = -9000.0;
+    userLat = -9000.0;
+    userLon = -9000.0;
     
     [self InitLocationManager];
 }//viewDidLoad
@@ -425,12 +431,28 @@
     }//if
     
     NSString* header = [ar[0] substringFromIndex:1]; // cut '$'
+    
+    // 2015-04-16 ND: Remove parsing the HDOP from the original entirely, as it's replaced
+    //                with the actual iOS HDOP from CoreLocation.
+    
+    /*
     NSString* hdop = ar[14];
     NSRange range = [hdop rangeOfString:@"*"];
     if (range.location == NSNotFound) {
         NSLog(@"bad format.");
     }
     hdop = [hdop substringWithRange:NSMakeRange(0, range.location)];  // cut default checksum
+    */
+    
+    // 2015-04-16 ND: Simulate A/V of of "gpsIsValid" bGeigie log column.  The way the GPS
+    //                chipset determines this is unknown.  Therefore, the way CoreLocation
+    //                determines validity will be used; invalid is defined as HDOP < 0.0.
+    NSString* gpsIsValid = gpsHDOP >= 0.0 ? @"A" : @"V"; // A = ok, V = fail
+    
+    // 2015-04-16 ND: Simulate number of satellites column.  Again, very basic approximation.
+    NSString* numSats    = gpsHDOP >= 0.0 ? @"8" : @"0";
+    
+    NSString* hdop       = [NSString stringWithFormat:@"%1.2f", gpsHDOP];
     
     NSString* prepare_dest = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@",
                       header, ar[1],
@@ -438,18 +460,20 @@
                       ar[3], ar[4], ar[5], ar[6],
                       self.lastNMEA,
                       [NSString stringWithFormat:@"%1.1f", gpsEle],
-                      ar[12], // todo: fix gpsisvalid
-                      ar[13], // todo: fix numsats
+                      gpsIsValid, //ar[12], // todo: fix gpsisvalid
+                      numSats, //ar[13], // todo: fix numsats
                       hdop];   // todo: hdop, checksum
     
     // get checksum
     const char checksum = [self getCheckSum:(char*)[prepare_dest UTF8String] length:(int)[prepare_dest length]];
 
-    // make destination
+    // make destination26.00,A,140,7*4D
     NSString* dest = [NSString stringWithFormat:@"$%@*%x", prepare_dest, checksum];
     
     return dest;
 }//HackString
+
+// https://github.com/Safecast/bGeigieNanoKit/wiki/Nano-Operation-Manual
 
 // 2015-03-30 13:47:03 GMT-6:$
 // $BNXRDD,300,2012-12-16T17:58:24Z,31,9,115,A,4618.9996,N,00658.4623,E,587.6,A,77.2,1*1A
@@ -536,6 +560,8 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     gpsEle  = newLocation.altitude;
     userLat = newLocation.coordinate.latitude;
     userLon = newLocation.coordinate.longitude;
+    gpsHDOP = newLocation.horizontalAccuracy; // 2015-04-16 ND: add HDOP
+    //newLocation.verticalAccuracy; // theoretically, in a new log format, this should also be used.
     
     NSString* slat = [NSString stringWithFormat:@"%1.8f", userLat];
     NSString* slon = [NSString stringWithFormat:@"%1.8f", userLon];
@@ -553,7 +579,7 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
     NSString *tempDate = [dateFormatter stringFromDate:currentDate];
     
-    NSLog(@"New Location: %1.6f, %1.6f (NMEA: %s) (Time: %@)", userLat, userLon, nmea, tempDate);
+    NSLog(@"New Location: %1.6f, %1.6f (NMEA: %s) (Time: %@) (HDOP: %1.2f)", userLat, userLon, nmea, tempDate, gpsHDOP);
     
     self.lastGMT  = tempDate;
     self.lastNMEA = [NSString stringWithFormat:@"%s", nmea];

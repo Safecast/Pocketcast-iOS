@@ -26,6 +26,7 @@
     double userLat;
     double userLon;
     double gpsEle;
+    double gpsHDOP;
     CLLocationManager* locationManager;
     NSTimer* _timer;
 }

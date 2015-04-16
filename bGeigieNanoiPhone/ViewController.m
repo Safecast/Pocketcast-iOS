@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Eyes, JAPAN. All rights reserved.
 //
 
+// 2015-04-16 ND: + Bugfix, horizontal accuracy in meters -> HDOP
 // 2015-04-16 ND: + Add location HDOP from CoreLocation
 //                + Init values for elevation, lat, lon, HDOP.
 // 2015-03-30 ND: + Integrate Mitsuo Okada's simulation code
@@ -561,6 +562,16 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     userLat = newLocation.coordinate.latitude;
     userLon = newLocation.coordinate.longitude;
     gpsHDOP = newLocation.horizontalAccuracy; // 2015-04-16 ND: add HDOP
+    
+    gpsHDOP /= 6.0; // 2015-04-16 ND: iOS returns precision in meters, but HDOP
+                    //                is something else.  The Wikipedia page shows
+                    //                a factor of 6.0 being used to convert HDOP to
+                    //                meters.  For the lack of a better method, this
+                    //                will use that for now.
+                    //                In reality, this is probably indeterminate on iOS.
+    
+    // https://en.wikipedia.org/wiki/Dilution_of_precision_(GPS)
+    
     //newLocation.verticalAccuracy; // theoretically, in a new log format, this should also be used.
     
     NSString* slat = [NSString stringWithFormat:@"%1.8f", userLat];

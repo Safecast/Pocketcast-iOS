@@ -23,17 +23,18 @@ Goal: Support "burst" transmissions from pGeigie.
 
 Requirements: pGeigie dev hardware
 
-Status: 0%
+Status: 40%
 
-- Core Location updates, altitudes, time, and precision information should be saved to an internal ring buffer structure (instead of just the last value.  Do not convert to string/NMEA immediately.)
+Done:
+- Core Location updates, altitudes, time, and precision information are saved to an internal ring buffer structure, LocationBuffer (instead of just the last value).
+- LocationBuffer is implemented in pure ANSI C for portability
+- LocationBuffer interpolates based upon timestamps and known locations, with some handling for edge cases (may need tweaking)
+- Improved power savings.  CoreLocation updates are now tied to be connected to the device, or connecting to the device.  This may need future tweaking for timeouts and background modes, etc.
+
+To Do:
 - Must support receiving pGeigie "burst" transmissions, of several measurements [how many?] at a fixed time interval [when?]
-
-pGeigie Data Processing:
-- First, the time of each pGeigie measurement should be computed
-- Next, each pGeigie measurement should be matched to the closest time index in the ring buffer of Core Location updates
-- Linear interpolation should be used to determine an approximate location for the pGeigie measurement
-- Some checking may need to be done to not match or use low-precision data from Core Location.  This needs further research.
-- A further tricky issue for iOS is that it is not possible to determine if hardware GPS is present directly.  This may need to be determined indirectly, and tested with WiFi-only iPads and iPod Touches, such that low-precision location information does not contaminate the spatial precision of the Safecast dataset.
+- First, the time of each pGeigie measurement should be computed. [offset some pushlatency?]
+- Next, each pGeigie measurement should be matched to the closest time index from LocationBuffer using LocationBuffer_Interpolate()
 
 
 ### Version 0.3
@@ -90,15 +91,15 @@ Goal: Polish and make suitable for use
 
 Requirements: Testing of Core Location precision to maximize battery use
 
-Status: 0%
+Status: 5%
 
-- Core Location should stop working / running in background if a device is not connected
+- Core Location should stop working / running in background if a device is not connected [DONE]
 - Any timers or polling must also be stopped.  In general, the use of polling should be avoided.  Excessive wakeups will cause iOS to terminate background apps.
 - The app should self-terminate, or stop Core Location / Bluetooth and all processing if < 20% battery remaining
 - On AC, Core Location accuracy should be set to kCLLocationAccuracyBestForNavigation
-- On battery, Core Location accuracy should be set to either kCLLocationAccuracyBest or perhaps kCLLocationAccuracyNearestTenMeters.
-- Test data should be collected and evaluated to determine if kCLLocationAccuracyNearestTenMeters is acceptable for Safecast data.  It should be compared to the actual results from kCLLocationAccuracyBest.
-- If test data is unavailable, kCLLocationAccuracyBest should be used as a default on battery.  Extending the user's battery life is nice, but is secondary.  There is no point in gathering data at all if the spatial resolution is unacceptable.
+- On battery, Core Location accuracy should be set to either kCLLocationAccuracyBest or perhaps kCLLocationAccuracyNearestTenMeters. [DONE]
+- Test data should be collected and evaluated to determine if kCLLocationAccuracyNearestTenMeters is acceptable for Safecast data.  It should be compared to the actual results from kCLLocationAccuracyBest. [DONE]
+- If test data is unavailable, kCLLocationAccuracyBest should be used as a default on battery.  Extending the user's battery life is nice, but is secondary.  There is no point in gathering data at all if the spatial resolution is unacceptable. [DONE]
 
 Optional:
 - The user might be allowed to disable geolocation or tweak the precision further.  However, no setting lower in precision than kCLLocationAccuracyNearestTenMeters, or without coordinates entirely, should be accepted for data submission to Safecast.
@@ -112,6 +113,9 @@ Reference:
 - kCLLocationAccuracyKilometer: Do not use.
 - kCLLocationAccuracyThreeKilometers: Do not use.
 - distanceFilter: Would suggest kCLDistanceFilterNone for AC power.  For battery, we should do some further testing.  Would assume 1.0m is a reasonable starting point.  Likely should not exceed 5.0m.
+
+Update:
+- kCLLocationAccuracyNearestTenMeters has acceptable precision, and resolves to the same 5m precision that kCLLocationAccuracyBest did when WiFi was available.  With Wifi disabled, it reported 10m, though eventually did better with time.
 
 If all required features above are supported, this may be considered an early release candidate pending approval from Sean/Pieter.
 

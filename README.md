@@ -1,5 +1,12 @@
-# pGeigie-prototype
-Dev for pGeigie client on iOS, initially using a bGeigie BLE proxy
+<img src="http://blog.safecast.org/wp-content/uploads/2014/01/header.png?w=460&amp;h=120&amp;crop=1" alt="Safecast">
+
+ 
+
+# Pocketcast Prototype
+Dev for Pocketcast client on iOS, initially using a bGeigie BLE proxy
+
+# Status Overview
+<img width="800" height="600" src="https://github.com/Safecast/pGeigie-prototype/raw/master/pocketcast_2048x1536.png" />
 
 ### Version 0.1
 
@@ -19,9 +26,9 @@ Additionally, simulated Bluetooth input has been added.
 
 ### Version 0.2
 
-Goal: Support "burst" transmissions from pGeigie.
+Goal: Support "burst" transmissions from Pocketcast.
 
-Requirements: pGeigie dev hardware
+Requirements: Pocketcast dev hardware
 
 Status: 40%
 

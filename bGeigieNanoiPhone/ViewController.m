@@ -6,6 +6,15 @@
 //  Copyright (c) 2014 Eyes, JAPAN. All rights reserved.
 //
 
+// 2015-04-25 ND: + Fix potential memory leak in legacy code
+//                + Only use CoreLocation when device is connecting/connected
+//                  (or for simulated data)
+//                + Enable power management for CoreLocation:
+//                  -kCLLocationAccuracyNearestTenMeters
+//                  -CLActivityTypeFitness
+// 2015-04-24 ND: + Fix timezone/UTC conversions
+// 2015-04-18 ND: + Add ring buffer + interpolation for CoreLocation data.
+//                  This replaces all older single-value location ivars.
 // 2015-04-16 ND: + Bugfix, horizontal accuracy in meters -> HDOP
 // 2015-04-16 ND: + Add location HDOP from CoreLocation
 //                + Init values for elevation, lat, lon, HDOP.
@@ -24,18 +33,24 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
-    _isStart = false;
+
+    _isStart         = false;
     _isStartSimulate = false;
-    self.lastNMEA = NULL;
-    self.lastGMT = NULL;
-    gpsEle  = -9000.0; // 2015-04-16 ND: init to (bad) initial values instead of random garbage
-    gpsHDOP = -9000.0;
-    userLat = -9000.0;
-    userLon = -9000.0;
+    _centralManager  = NULL;    // 2015-04-24 ND: fix potential memory leak
+    
+    LocationBuffer_Init(&_locBuf, 256); // 2015-04-18 ND: required init for ring buffer
     
     [self InitLocationManager];
 }//viewDidLoad
+
+
+// 2015-04-18 ND: free C mallocs
+- (void)viewDidDisappear:(BOOL)animated
+{
+    LocationBuffer_Destroy(&_locBuf);
+}//viewDidDisappear
+
+
 
 - (void)didReceiveMemoryWarning
 {
@@ -58,7 +73,6 @@
 - (IBAction)pushClearButton:(id)sender
 {
     [_messageOutputTextView setText:@""];
-
 }//pushClearButton
 
 - (void)sendSimulatedbGeigieData:(NSTimer *)timer
@@ -77,9 +91,14 @@
 - (void)startSimulate
 {
     // start bGeigie simulate
-    [_startbGeigieSimulateButton setTitle:@"Stop bGeigie Simulate" forState:UIControlStateNormal];
+    [_startbGeigieSimulateButton setTitle:@"Stop bGeigie Simulate"
+                                 forState:UIControlStateNormal];
     
-    _isStartSimulate = true;
+    // 2015-04-24 ND: Only use CoreLocation when a device is connected, or
+    //                when app is attempting to connect.
+    [self StartLocationManagerUpdates];
+    
+    _isStartSimulate   = true;
     
     // start timer interval 5 sec
     NSLog(@"start simulate");
@@ -102,8 +121,14 @@
     }//if
     
     // change label
-    [_startbGeigieSimulateButton setTitle:@"Start bGeigie Simulate" forState:UIControlStateNormal];
-    _isStartSimulate = false;
+    [_startbGeigieSimulateButton setTitle:@"Start bGeigie Simulate"
+                                 forState:UIControlStateNormal];
+    
+    // 2015-04-24 ND: Only use CoreLocation when a device is connected, or
+    //                when app is attempting to connect.
+    [self StopLocationManagerUpdates];
+    
+    _isStartSimulate   = false;
 }//stopSimulate
 
 
@@ -124,9 +149,19 @@
 #pragma mark - start and stop
 -(void)start
 {
-    _centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:NULL];
+    // 2015-04-24 ND: fix potential memory leak
+    if (_centralManager == NULL)
+    {
+        _centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:NULL];
+    }//if
     
     [_startButton setTitle:@"Stop" forState:UIControlStateNormal];
+    
+    // 2015-04-24 ND: Only use CoreLocation when a device is connected, or
+    //                when app is attempting to connect.
+    //                Todo: May need to hook into BT events if device dies.
+    
+    [self StartLocationManagerUpdates];
     
     _isStart = true;
 }//start
@@ -139,9 +174,15 @@
         _connectingPeripheral = NULL;
     }//if
     
-    _isStart = false;
+    // 2015-04-24 ND: Only use CoreLocation when a device is connected, or
+    //                when app is attempting to connect.
+    //                Todo: May need to hook into BT events if device dies.
+    
+    [self StopLocationManagerUpdates];
     
     [_startButton setTitle:@"Start" forState:UIControlStateNormal];
+    
+    _isStart = false;
 }//stop
 
 
@@ -343,6 +384,7 @@
     {
         [self addStringToTextView:[NSString stringWithFormat:@"Error when reading characteristics: %@", [error localizedDescription]]];
         NSLog(@"Central node Error when reading characteristics: %@", [error localizedDescription]);
+        
         return;
     }//if
     
@@ -421,29 +463,28 @@
     
     if (ar.count != 15)
     {
-        NSLog(@"HackString: ERR: CSV did not contain 15 elements.  Aborting and leaving string unmodified.");
-        return src;
-    }//if
-    
-    if (self.lastGMT == NULL || self.lastNMEA == NULL)
-    {
-        NSLog(@"HackString: ERR: Device time / NMEA location were NULL.  No CoreLocation callback?  Aborting and leaving string unmodified.");
+        NSLog(@"HackString: ERR: CSV did not contain 15 elements.  Aborting.");
         return src;
     }//if
     
     NSString* header = [ar[0] substringFromIndex:1]; // cut '$'
+
+    // 2015-04-18 ND: Replace single-value ivars with ring buffer
     
-    // 2015-04-16 ND: Remove parsing the HDOP from the original entirely, as it's replaced
-    //                with the actual iOS HDOP from CoreLocation.
+    double x;
+    double y;
+    double z;
+    double xy_precision;
+    double z_precision;
+    int64_t current_timestamp_ms = LocationBuffer_CURRENT_TIMESTAMP_MS_S64();
     
-    /*
-    NSString* hdop = ar[14];
-    NSRange range = [hdop rangeOfString:@"*"];
-    if (range.location == NSNotFound) {
-        NSLog(@"bad format.");
-    }
-    hdop = [hdop substringWithRange:NSMakeRange(0, range.location)];  // cut default checksum
-    */
+    LocationBuffer_Interpolate(&_locBuf, current_timestamp_ms, &x, &y, &z, &xy_precision, &z_precision);
+    
+    double gpsHDOP = xy_precision / 6.0;
+    
+    NSString* rfc_date = [self.class GetRfcDateForUnixTimestamp:current_timestamp_ms / 1000LL];
+    NSString* nmea     = [self.class GetNmeaLocationForLat:y lon:x];
+    
     
     // 2015-04-16 ND: Simulate A/V of of "gpsIsValid" bGeigie log column.  The way the GPS
     //                chipset determines this is unknown.  Therefore, the way CoreLocation
@@ -457,16 +498,17 @@
     
     NSString* prepare_dest = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@,%@",
                       header, ar[1],
-                      self.lastGMT,
+                      rfc_date,
                       ar[3], ar[4], ar[5], ar[6],
-                      self.lastNMEA,
-                      [NSString stringWithFormat:@"%1.1f", gpsEle],
-                      gpsIsValid, //ar[12], // todo: fix gpsisvalid
-                      numSats, //ar[13], // todo: fix numsats
-                      hdop];   // todo: hdop, checksum
+                      nmea,
+                      [NSString stringWithFormat:@"%1.1f", z],
+                      gpsIsValid,
+                      numSats,
+                      hdop];
     
     // get checksum
-    const char checksum = [self getCheckSum:(char*)[prepare_dest UTF8String] length:(int)[prepare_dest length]];
+    const char checksum = [self getCheckSum:(char*)[prepare_dest UTF8String]
+                                     length:(int)[prepare_dest length]];
 
     // make destination26.00,A,140,7*4D
     NSString* dest = [NSString stringWithFormat:@"$%@*%x", prepare_dest, checksum];
@@ -493,6 +535,227 @@
 
 
 
+
+
+
+
+
+- (void)InitLocationManager
+{
+    self.locationManager                 = [[CLLocationManager alloc] init];
+    self.locationManager.delegate        = self;
+    
+    self.locationManager.distanceFilter  = kCLDistanceFilterNone; // Any movement.
+    
+    // 2015-04-24 ND: Test kCLLocationAccuracyBest -> kCLLocationAccuracyNearestTenMeters
+    //                Test CLActivityTypeFitness
+    self.locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters;
+    self.locationManager.activityType    = CLActivityTypeFitness;
+    
+    // NB: It's possible that CLActivityTypeFitness may fail in a vehicle, or
+    //     that the vehicle version would fail for a pedestrian.  This needs
+    //     more testing.
+}//InitLocationManager
+
+
+// 2015-04-24 ND: Adding StartLocationManagerUpdates for supporting BT events
+//                eventually.
+//
+//                The location updates should stop if BT is lost for more than
+//                time X.
+//
+//                NOTE: There may be issues with restarting location services
+//                      if the app is running in the background.
+- (void)StartLocationManagerUpdates
+{
+    if (   [self.locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)] // iOS 7 compatibility
+        && [CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined)
+    {
+        [self.locationManager requestWhenInUseAuthorization]; // or should be always?
+    }//if
+    
+    if (   [CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized
+        || [CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedAlways
+        || [CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedWhenInUse)
+    {
+        [self.locationManager startUpdatingLocation];
+    }//if
+    else
+    {
+        NSLog(@"Can't start CoreLocation: Not authorized: %d.", [CLLocationManager authorizationStatus]);
+    }//else
+}//StartLocationManagerUpdates
+
+- (void)StopLocationManagerUpdates
+{
+    // todo: add some check here
+    [self.locationManager stopUpdatingLocation];
+}//StopLocationManagerUpdates
+
+
+
+// callback for GPS infos
+/*
+- (void)locationManager:(CLLocationManager *)manager
+    didUpdateToLocation:(CLLocation *)newLocation
+           fromLocation:(CLLocation *)oldLocation
+*/
+// 2015-04-24 ND: replace deprecated CoreLocation delegate method
+- (void)locationManager:(CLLocationManager*)manager
+     didUpdateLocations:(NSArray*)locations
+{
+    NSTimeInterval xyz_time_ss = 0;
+    int64_t        xyz_time_ms = 0;
+    CLLocation*    newLocation = NULL;
+    
+    for (size_t i=0; i<locations.count; i++)
+    {
+        newLocation = locations[i];
+        
+        xyz_time_ss = [self.class GetUnixSsForDate:newLocation.timestamp];
+        xyz_time_ms = xyz_time_ss * 1000.0;
+        
+        LocationBuffer_Push(&_locBuf,
+                            xyz_time_ms,
+                            newLocation.coordinate.longitude,
+                            newLocation.coordinate.latitude,
+                            newLocation.altitude,
+                            newLocation.horizontalAccuracy,
+                            newLocation.verticalAccuracy);
+        
+        
+        
+        
+        // **** debug crap ****
+        if (_locBuf.max_idx == 1)
+        {
+            // only show this once on-device
+            
+            NSString *m;
+            m = [NSString stringWithFormat:@"CoreLocation: { (%1.4f, :%1.4f) alt:%1.0f, time:%@ [Precision: h:%1.1f, v:%1.1f] }",
+                 newLocation.coordinate.latitude,
+                 newLocation.coordinate.longitude,
+                 newLocation.altitude,
+                 newLocation.timestamp,
+                 newLocation.horizontalAccuracy,
+                 newLocation.verticalAccuracy];
+            
+            [self addStringToTextView:m];
+            
+            // old debug for timezone conversions, etc.
+            /*
+            const int64_t   sys_time_ms = [self.class GetUnixMsForCurrentDate];
+            const int64_t posix_time_ms = LocationBuffer_CURRENT_TIMESTAMP_MS_S64();
+            
+            NSString* nssXyzTime   = [self.class GetRfcDateForUnixTimestamp:xyz_time_ms/1000LL];
+            NSString* nssSysTime   = [self.class GetRfcDateForUnixTimestamp:sys_time_ms/1000LL];
+            NSString* nssPosixTime = [self.class GetRfcDateForUnixTimestamp:posix_time_ms/1000LL];
+            
+            m = [NSString stringWithFormat:@"Timestamps: { xyz:%lld, sys:%lld, posix:%lld } -> { xyz:%@, sys:%@, posix:%@ }",
+                   xyz_time_ms / 1000LL,
+                   sys_time_ms / 1000LL,
+                 posix_time_ms / 1000LL,
+                 nssXyzTime,
+                 nssSysTime,
+                 nssPosixTime];
+            
+            [self addStringToTextView:m];
+            
+            NSLog(@"%@", m);
+            */
+        }//if
+        
+        NSLog(@"New Location: %1.8f, %1.8f (Alt:%1.0f) (Time: %@) (hp: %1.2f) (vp: %1.2f)",
+              newLocation.coordinate.latitude,
+              newLocation.coordinate.longitude,
+              newLocation.altitude,
+              newLocation.timestamp,
+              newLocation.horizontalAccuracy,
+              newLocation.verticalAccuracy);
+    }//for (each location)
+}//locationManager
+
+
+// This delegate method is invoked when the location managed encounters an error condition.
+- (void)locationManager:(CLLocationManager *)manager
+       didFailWithError:(NSError *)error
+{
+    if ([error code] == kCLErrorDenied)
+    {
+        NSLog(@"Access denied by user.");
+        [manager stopUpdatingHeading];
+        [manager stopUpdatingLocation];
+        
+        // TODO: This represents a system failure condition.
+        //       Stronger action must be taken to inform the user they have
+        //       denied permissions, and that nothing will work as a result.
+    }//if
+    else if ([error code] == kCLErrorHeadingFailure)
+    {
+        NSLog(@"kCLErrorHeadingFailure");
+        // This error indicates that the heading could not be determined, most likely because of strong magnetic interference.
+    }//else
+}//locationManager didFailWithError
+
+
+
+
+
+// ========================== Static / Class Methods ==========================
+
+// returns the current date as milliseconds since 1970 (UTC)
++ (int64_t)GetUnixMsForCurrentDate
+{
+    NSDate* src = [NSDate date];
+    
+    NSTimeInterval dest_ss = [src timeIntervalSince1970];
+    
+    int64_t dest_ms = dest_ss * 1000.0;
+    
+    return dest_ms;
+}//GetUnixMsForCurrentDate
+
+// Converts NSDate to seconds since 1970 (UTC)
++ (NSTimeInterval)GetUnixSsForDate:(NSDate*)src
+{
+    NSTimeInterval dest = [src timeIntervalSince1970];
+    
+    return dest;
+}//GetUnixSsForDate
+
+// Converts unix timestamp to RFC3337 string representation used by the log.
++ (NSString*)GetRfcDateForUnixTimestamp:(const int64_t)timeSS
+{
+    NSDate* src = [NSDate dateWithTimeIntervalSince1970:timeSS];
+    
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    
+    NSTimeZone *gmt = [NSTimeZone timeZoneWithAbbreviation:@"GMT"];
+    [dateFormatter setTimeZone:gmt];
+    
+    [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
+    NSString *dest = [dateFormatter stringFromDate:src];
+    
+    return dest;
+}//GetRfcDateForUnixTimestamp
+
+// converts lat/lon to a NMEA string representation as used by the log.
++ (NSString*)GetNmeaLocationForLat:(const double)lat
+                               lon:(const double)lon
+{
+    NSString* slat = [NSString stringWithFormat:@"%1.16f", lat];
+    NSString* slon = [NSString stringWithFormat:@"%1.16f", lon];
+    
+    char nmea[25];
+    
+    deg2nmea((char*)slat.UTF8String, (char*)slon.UTF8String, nmea);
+    
+    NSString* dest = [NSString stringWithFormat:@"%s", nmea];
+    
+    return dest;
+}//GetNmeaALocationForLat
+
+// from bGeigie firmware source
 void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
 {
     double lat_f = strtod(lat, NULL);
@@ -520,102 +783,7 @@ void deg2nmea(char *lat, char *lon, char *lat_lon_nmea)
     snprintf(lat_lon_nmea, 25, "%02d%s,%c,%03d%s,%c", lat_d, lat_min_str, NS, lon_d, lon_min_str, EW);
 }//deg2nmea
 
-
-
-
-- (void)InitLocationManager
-{
-    self.locationManager = [[CLLocationManager alloc] init];
-    self.locationManager.delegate = self;
-    
-    if (   [self.locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)] // iOS 7 compatibility
-        && [CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined)
-    {
-        [self.locationManager requestWhenInUseAuthorization];
-    }//if
-    
-    self.locationManager.distanceFilter = kCLDistanceFilterNone; // whenever we move
-    self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;
-    
-    if (   [CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized
-        || [CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedAlways
-        || [CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedWhenInUse)
-    {
-        [self.locationManager startUpdatingLocation];
-    }//if
-    else
-    {
-        //[self.locationManager startUpdatingLocation];
-        NSLog(@"Not authorized: %d.", [CLLocationManager authorizationStatus]);
-    }//else
-    
-    NSLog(@"InitLocationManager: Done");
-}//InitLocationManager
-
-
-// callback for GPS infos
-- (void)locationManager:(CLLocationManager *)manager
-    didUpdateToLocation:(CLLocation *)newLocation
-           fromLocation:(CLLocation *)oldLocation
-{
-    gpsEle  = newLocation.altitude;
-    userLat = newLocation.coordinate.latitude;
-    userLon = newLocation.coordinate.longitude;
-    gpsHDOP = newLocation.horizontalAccuracy; // 2015-04-16 ND: add HDOP
-    
-    gpsHDOP /= 6.0; // 2015-04-16 ND: iOS returns precision in meters, but HDOP
-                    //                is something else.  The Wikipedia page shows
-                    //                a factor of 6.0 being used to convert HDOP to
-                    //                meters.  For the lack of a better method, this
-                    //                will use that for now.
-                    //                In reality, this is probably indeterminate on iOS.
-    
-    // https://en.wikipedia.org/wiki/Dilution_of_precision_(GPS)
-    
-    //newLocation.verticalAccuracy; // theoretically, in a new log format, this should also be used.
-    
-    NSString* slat = [NSString stringWithFormat:@"%1.8f", userLat];
-    NSString* slon = [NSString stringWithFormat:@"%1.8f", userLon];
-    
-    char nmea[25];
-    
-    deg2nmea((char*)slat.UTF8String, (char*)slon.UTF8String, nmea);
-    
-    NSDate *currentDate = [NSDate date];
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    
-    NSTimeZone *gmt = [NSTimeZone timeZoneWithAbbreviation:@"GMT"];
-    [dateFormatter setTimeZone:gmt];
-    
-    [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
-    NSString *tempDate = [dateFormatter stringFromDate:currentDate];
-    
-    NSLog(@"New Location: %1.6f, %1.6f (NMEA: %s) (Time: %@) (HDOP: %1.2f)", userLat, userLon, nmea, tempDate, gpsHDOP);
-    
-    self.lastGMT  = tempDate;
-    self.lastNMEA = [NSString stringWithFormat:@"%s", nmea];
-}//locationManager
-
-
-// This delegate method is invoked when the location managed encounters an error condition.
-- (void)locationManager:(CLLocationManager *)manager
-       didFailWithError:(NSError *)error
-{
-    if ([error code] == kCLErrorDenied)
-    {
-        NSLog(@"Access denied by user.");
-        [manager stopUpdatingHeading];
-        [manager stopUpdatingLocation];
-    }//if
-    else if ([error code] == kCLErrorHeadingFailure)
-    {
-        NSLog(@"kCLErrorHeadingFailure");
-        // This error indicates that the heading could not be determined, most likely because of strong magnetic interference.
-    }//else
-}//locationManager didFailWithError
-
-
-//getCheckSum
+// from bGeigie firmware source
 -(char)getCheckSum:(char *)s length:(int )N
 {
     int i = 0;

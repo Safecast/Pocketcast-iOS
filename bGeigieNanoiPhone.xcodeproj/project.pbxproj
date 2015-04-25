@@ -18,6 +18,7 @@
 		BE3816D9187BC3C60005C7DE /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BE3816D8187BC3C60005C7DE /* Images.xcassets */; };
 		BE3816F6187BC90A0005C7DE /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BE3816F5187BC90A0005C7DE /* CoreBluetooth.framework */; };
 		BE3816FA187BE7080005C7DE /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = BE3816F9187BE7080005C7DE /* Settings.bundle */; };
+		FAAFB3A51AE236A50091EFFE /* LocationBuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = FAAFB3A31AE236A50091EFFE /* LocationBuffer.c */; };
 		FAE353741AC1293600444EC3 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAE353731AC1293600444EC3 /* CoreLocation.framework */; };
 /* End PBXBuildFile section */
 
@@ -38,6 +39,8 @@
 		BE3816D8187BC3C60005C7DE /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		BE3816F5187BC90A0005C7DE /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		BE3816F9187BE7080005C7DE /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
+		FAAFB3A31AE236A50091EFFE /* LocationBuffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LocationBuffer.c; sourceTree = "<group>"; };
+		FAAFB3A41AE236A50091EFFE /* LocationBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationBuffer.h; sourceTree = "<group>"; };
 		FAE353731AC1293600444EC3 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -89,6 +92,8 @@
 		BE3816C6187BC3C60005C7DE /* bGeigieNanoiPhone */ = {
 			isa = PBXGroup;
 			children = (
+				FAAFB3A41AE236A50091EFFE /* LocationBuffer.h */,
+				FAAFB3A31AE236A50091EFFE /* LocationBuffer.c */,
 				BE3816CF187BC3C60005C7DE /* AppDelegate.h */,
 				BE3816D0187BC3C60005C7DE /* AppDelegate.m */,
 				BE3816D2187BC3C60005C7DE /* Main.storyboard */,
@@ -187,6 +192,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FAAFB3A51AE236A50091EFFE /* LocationBuffer.c in Sources */,
 				BE3816D7187BC3C60005C7DE /* ViewController.m in Sources */,
 				BE3816D1187BC3C60005C7DE /* AppDelegate.m in Sources */,
 				BE3816CD187BC3C60005C7DE /* main.m in Sources */,

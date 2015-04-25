@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Do stuff 2</string>
+	<string>The location of the measurements is necessary for mapping.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Do stuff</string>
+	<string>The location of the measurements is necessary for mapping.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>

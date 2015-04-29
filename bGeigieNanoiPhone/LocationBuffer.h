@@ -60,8 +60,6 @@ typedef struct LocationBuffer
 //
 // Returns the current timestamp, in UTC milliseconds since 1970-01-01 00:00:00.
 //
-// NOTE: This is affected by the system timezone.
-//
 int64_t LocationBuffer_CURRENT_TIMESTAMP_MS_S64();
 
 // ===================

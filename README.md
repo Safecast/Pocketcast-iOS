@@ -6,7 +6,7 @@
 Dev for Pocketcast client on iOS, initially using a bGeigie BLE proxy
 
 # Status Overview
-<img width="800" height="600" src="https://github.com/Safecast/pGeigie-prototype/raw/master/pocketcast_2048x1536.png" />
+<img width="728" height="546" src="https://github.com/Safecast/pGeigie-prototype/raw/master/pocketcast_2048x1536.png" />
 
 ### Version 0.1
 

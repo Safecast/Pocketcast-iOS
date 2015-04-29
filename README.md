@@ -28,9 +28,9 @@ Additionally, simulated Bluetooth input has been added.
 
 Goal: Support "burst" transmissions from Pocketcast.
 
-Requirements: Pocketcast dev hardware
+Requirements: Pocketcast dev hardware and protocol.
 
-Status: 40%
+Status: 20%
 
 Done:
 - Core Location updates, altitudes, time, and precision information are saved to an internal ring buffer structure, LocationBuffer (instead of just the last value).
@@ -42,6 +42,12 @@ To Do:
 - Must support receiving pGeigie "burst" transmissions, of several measurements [how many?] at a fixed time interval [when?]
 - First, the time of each pGeigie measurement should be computed. [offset some pushlatency?]
 - Next, each pGeigie measurement should be matched to the closest time index from LocationBuffer using LocationBuffer_Interpolate()
+
+Update (2015-04-28): After feedback from Ray regarding a low-energy mode suitable for 24/7 operation using CoreLocation significant change functionality that would not be uploadable to the current API, some additional requirements to accomodate this emerged.
+
+Low-Power To Do:
+- Default to the low-power significant changes CoreLocation mode.  Note data recorded in this manner cannot be submitted to the API currently due to the assumptions made in point geometry regarding spatial precision.
+- Allow a toggle to return to the normal high-energy, higher-precision dGPS mode suitable for Safecast surveys.  In the UI, this could be implemented by requiring the user to start and end a survey specifically. (TBD)
 
 
 ### Version 0.3
@@ -55,8 +61,13 @@ Status: 0%.  Marc has indicated he will be working on this component.
 - Uploads of log files (once closed) should be demonstrated, using a RESTful HTTP POST to the Safecast API
 
 Caveats:
-- Multiple pGeigies may be connected at the same time, thus recording to multiple log files at the same time.
-- With a bGeigie, a log file "session" is from the unit power-on to power-off.  It is possible that allowances may need to be made for resuming a log file due to BT connectivity failure.
+- With a bGeigie, a log file "session" or survey is from the unit power-on to power-off.  It is possible that allowances may need to be made for resuming a survey due to BT connectivity failure.
+
+Low-Power To Do:
+- To support both power modes, data will be stored in a SQLite database.  Based on either survey start/end "tags", or a timestap query (TBD), the log file rows will be queried from the DB and then converted/exported to a log file at that time.
+- For the UI to obtain a list of (possible) log files, the data provider layer will return query results from a survey table, joined to the measurement rows.
+- For the UI to obtain a bGeigie log file of a survey for upload to the Safecast API, the data provider layer will convert the measurement rows to that format as needed, stripping out any 500m precision results.
+- Nice to have: an alternate log format not importable into the Safecast API that could contain low-precision or mixed-precision data.  This would however require a query interface, as the results would not be by survey.
 
 
 ### Version 0.4

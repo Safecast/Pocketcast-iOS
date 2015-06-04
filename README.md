@@ -5,6 +5,57 @@
 # Pocketcast Prototype
 Dev for Pocketcast client on iOS, initially using a bGeigie BLE proxy
 
+
+# Update 2015-06-03
+
+All documentation below this section is somewhat outdated, and current development is changing too rapidly to synchronize it just now.
+
+In short, while what is present below is somewhat correct, the core model of the app has changed to support low-power use cases and have a very flexible and reuseable standardized data model.
+
+### Data Model Changes
+
+A database-backed ANSI C-based data model and processing graph has been created to replace DeviceBufffer.c, HistoryBuffer.c, and LocationBuffer.c.  This is designed to be extremely flexible and work with not only this version of Pocketcast but potentially any sensor or sensors.
+
+Because the code is ANSI C, it is highly portable, and should even work on embedded platforms.
+
+Because it is database-backed with a standard, strongly-typed relational database, this provides an excellent combination of performance, efficiency, and being able to query data while remaining flexible enough to dynamically handle future use cases.
+
+This is quite non-trivial to develop, but the end goal is a reuseable component that is trivial to integrate and reduces future development time and maintenance.
+
+#### Data Model - Objects
+
+The data model fundamentally defines devices, sensors, and channels.  A channel is the equivalent of a Bluetooth BLE characterisitic.
+
+These channels are then mapped to display and database storage fields.
+
+#### Data Model - Processing Graph
+
+The other part of this is the processing graph, which is any number of processing nodes performing various operations on the data to convert raw sensor values to derived-SI units.  The reason for the flexible operation chain instead of formal concepts such as gamma sensitivity are because for many sensors, a constant factor is not sufficient to transfeom raw sensor data into something useful.  In terms of the Pocketcast with the SensorTag, this is true for most all of the built-in sensors.
+
+#### Data Model - End Use
+
+The app will contain a fully-functional object model and processing graph that will automatically recognize Pocketcast devices via a to-be-determined Bluetooth UUID.  This will be defined at a database level.
+
+Eventually, the ability to import a model and graph will be added.  This will likely involve adding a JSON parser, with the JSON coming from a known and recognized BLE service, or potentially a webservice or other mechanism.  The JSON document would be parsed and added to the internal DB as the default preloaded model and graph are.
+
+It would also be my expectation that a GUI-type editor could be developed to greatly simplify the process of creating object models and graphs for new devices.
+
+#### Data Model - Interfaces
+
+Objective C interface classes will be provided on top of the C model to make integration and use easier.
+
+### BLE Delegate
+
+All Bluetooth functionality has been moved from the ViewController to a new BLE delegate interface.  Support for callbacks and multiple services and characteristics have been added.
+
+### CoreLocation Delegate
+
+As with BLE, CoreLocation functionality now has been seperated into its own delegate class.  Support for iOS's significant location changes mode has been added.  Supoort for external power detection has been added.
+
+
+
+
+
 # Status Overview
 <img width="728" height="546" src="https://github.com/Safecast/pGeigie-prototype/raw/master/pocketcast_2048x1536.png" />
 

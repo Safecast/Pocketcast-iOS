@@ -53,7 +53,7 @@ All Bluetooth functionality has been moved from the ViewController to a new BLE 
 As with BLE, CoreLocation functionality now has been seperated into its own delegate class.  Support for iOS's significant location changes mode has been added.  Supoort for external power detection has been added.
 
 
-
+# Old Documentation Follows - Superceded by Above
 
 
 # Status Overview
